@@ -1,16 +1,18 @@
 import { Config } from '@algorandfoundation/algokit-utils'
 import { registerDebugEventHandlers } from '@algorandfoundation/algokit-utils-debug'
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing'
-import algosdk from 'algosdk'
 import { ethers } from 'ethers'
-import { LiquidEvmSdk, parseEvmSignature } from 'liquid-evm-sdk'
+import algosdk from 'algosdk'
+import { LiquidEvmSdk } from 'liquid-evm-sdk'
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest'
 
 // Fixed EVM test wallet (DO NOT use in production)
 const EVM_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 const evmWallet = new ethers.Wallet(EVM_PRIVATE_KEY)
-const CORRECT_ETH_ACCOUNT = evmWallet.address.slice(2).toLowerCase() // 20-byte hex (no 0x)
-const WRONG_ETH_ACCOUNT = '0000000000000000000000000000000000000000'
+const CORRECT_ETH_ACCOUNT = evmWallet.address
+const WRONG_ETH_ACCOUNT = '0x0000000000000000000000000000000000000000'
+
+const signMessage = (msg: Uint8Array) => evmWallet.signMessage(msg)
 
 describe('LogicSig EVM signature validation', () => {
   const localnet = algorandFixture()
@@ -24,34 +26,43 @@ describe('LogicSig EVM signature validation', () => {
     test('approves when signature matches the templated EVM account', async () => {
       const { algorand } = localnet
       const sdk = new LiquidEvmSdk({ algorand })
-      const { compiled, addr } = await sdk.getSigner({ evmAddress: CORRECT_ETH_ACCOUNT })
+      const { addr, signer } = await sdk.getSigner({ evmAddress: CORRECT_ETH_ACCOUNT, signMessage })
 
-      // Fund the lsig address
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
-      // Build the transaction to get its ID
-      const txn = await algorand.createTransaction.payment({
+      await algorand.send.payment({
         sender: addr,
         receiver: addr,
         amount: (0).algos(),
         validityWindow: 100,
+        signer,
       })
-
-      // Sign the raw 32-byte txn ID with the EVM wallet (personal_sign)
-      const evmSig = await evmWallet.signMessage(txn.rawTxID())
-      const sigBytes = parseEvmSignature(evmSig)
-
-      // Create lsig with the signature as arg0 and sign the transaction
-      const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
-      const signed = algosdk.signLogicSigTransactionObject(txn, lsig)
-
-      await algorand.client.algod.sendRawTransaction(signed.blob).do()
     })
 
     test('rejects when templated EVM account does not match signer', async () => {
       const { algorand } = localnet
       const sdk = new LiquidEvmSdk({ algorand })
-      const { compiled, addr } = await sdk.getSigner({ evmAddress: WRONG_ETH_ACCOUNT })
+      const { addr, signer } = await sdk.getSigner({ evmAddress: WRONG_ETH_ACCOUNT, signMessage })
+
+      await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
+
+      await expect(
+        algorand.send.payment({
+          sender: addr,
+          receiver: addr,
+          amount: (0).algos(),
+          validityWindow: 100,
+          signer,
+        }),
+      ).rejects.toThrow()
+    })
+  })
+
+  describe('single transaction, grouped (Group ID)', () => {
+    test('approves when signature matches the templated EVM account', async () => {
+      const { algorand } = localnet
+      const sdk = new LiquidEvmSdk({ algorand })
+      const addr = await sdk.getAddress({ evmAddress: CORRECT_ETH_ACCOUNT })
 
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
@@ -61,15 +72,41 @@ describe('LogicSig EVM signature validation', () => {
         amount: (0).algos(),
         validityWindow: 100,
       })
+      const [gtxn] = algosdk.assignGroupID([txn])
 
-      // Sign with the correct EVM key, but the lsig is templated with the wrong account
-      const evmSig = await evmWallet.signMessage(txn.rawTxID())
-      const sigBytes = parseEvmSignature(evmSig)
+      const [signed] = await sdk.signTxn({
+        evmAddress: CORRECT_ETH_ACCOUNT,
+        txns: [gtxn],
+        signMessage,
+      })
 
-      const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
-      const signed = algosdk.signLogicSigTransactionObject(txn, lsig)
+      await algorand.client.algod.sendRawTransaction(signed).do()
+    })
 
-      await expect(algorand.client.algod.sendRawTransaction(signed.blob).do()).rejects.toThrow()
+    test('rejects when templated EVM account does not match signer', async () => {
+      const { algorand } = localnet
+      const sdk = new LiquidEvmSdk({ algorand })
+      const addr = await sdk.getAddress({ evmAddress: WRONG_ETH_ACCOUNT })
+
+      await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
+
+      const txn = await algorand.createTransaction.payment({
+        sender: addr,
+        receiver: addr,
+        amount: (0).algos(),
+        validityWindow: 100,
+      })
+      const [gtxn] = algosdk.assignGroupID([txn])
+
+      const [signed] = await sdk.signTxn({
+        evmAddress: WRONG_ETH_ACCOUNT,
+        txns: [gtxn],
+        signMessage,
+      })
+
+      await expect(
+        algorand.client.algod.sendRawTransaction(signed).do(),
+      ).rejects.toThrow()
     })
   })
 
@@ -77,74 +114,50 @@ describe('LogicSig EVM signature validation', () => {
     test('approves when signature matches the templated EVM account', async () => {
       const { algorand, testAccount } = localnet.context
       const sdk = new LiquidEvmSdk({ algorand })
-      const { compiled, addr } = await sdk.getSigner({ evmAddress: CORRECT_ETH_ACCOUNT })
+      const { addr, signer } = await sdk.getSigner({ evmAddress: CORRECT_ETH_ACCOUNT, signMessage })
 
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
-      // Build two individual transactions
-      const txn1 = await algorand.createTransaction.payment({
-        sender: addr,
-        receiver: addr,
-        amount: (0).algos(),
-        validityWindow: 100,
-      })
-      const txn2 = await algorand.createTransaction.payment({
-        sender: testAccount.addr,
-        receiver: testAccount.addr,
-        amount: (0).algos(),
-        validityWindow: 100,
-      })
-
-      // Compute group ID and assign it to the transactions
-      const groupId = algosdk.computeGroupID([txn1, txn2])
-      const [gtxn1, gtxn2] = algosdk.assignGroupID([txn1, txn2])
-
-      // Sign the raw 32-byte group ID with the EVM wallet
-      const evmSig = await evmWallet.signMessage(groupId)
-      const sigBytes = parseEvmSignature(evmSig)
-
-      // Sign lsig transaction with the EVM signature
-      const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
-      const signedLsigTxn = algosdk.signLogicSigTransactionObject(gtxn1, lsig)
-
-      // Sign the second transaction with the test account
-      const signedTestTxn = gtxn2.signTxn(testAccount.sk)
-
-      await algorand.client.algod.sendRawTransaction([signedLsigTxn.blob, signedTestTxn]).do()
+      await algorand.newGroup()
+        .addPayment({
+          sender: addr,
+          receiver: addr,
+          amount: (0).algos(),
+          validityWindow: 100,
+          signer,
+        })
+        .addPayment({
+          sender: testAccount.addr,
+          receiver: testAccount.addr,
+          amount: (0).algos(),
+          validityWindow: 100,
+        })
+        .send()
     })
 
     test('rejects when templated EVM account does not match signer', async () => {
       const { algorand, testAccount } = localnet.context
       const sdk = new LiquidEvmSdk({ algorand })
-      const { compiled, addr } = await sdk.getSigner({ evmAddress: WRONG_ETH_ACCOUNT })
+      const { addr, signer } = await sdk.getSigner({ evmAddress: WRONG_ETH_ACCOUNT, signMessage })
 
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
-      const txn1 = await algorand.createTransaction.payment({
-        sender: addr,
-        receiver: addr,
-        amount: (0).algos(),
-        validityWindow: 100,
-      })
-      const txn2 = await algorand.createTransaction.payment({
-        sender: testAccount.addr,
-        receiver: testAccount.addr,
-        amount: (0).algos(),
-        validityWindow: 100,
-      })
-
-      const groupId = algosdk.computeGroupID([txn1, txn2])
-      const [gtxn1, gtxn2] = algosdk.assignGroupID([txn1, txn2])
-
-      const evmSig = await evmWallet.signMessage(groupId)
-      const sigBytes = parseEvmSignature(evmSig)
-
-      const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
-      const signedLsigTxn = algosdk.signLogicSigTransactionObject(gtxn1, lsig)
-      const signedTestTxn = gtxn2.signTxn(testAccount.sk)
-
       await expect(
-        algorand.client.algod.sendRawTransaction([signedLsigTxn.blob, signedTestTxn]).do(),
+        algorand.newGroup()
+          .addPayment({
+            sender: addr,
+            receiver: addr,
+            amount: (0).algos(),
+            validityWindow: 100,
+            signer,
+          })
+          .addPayment({
+            sender: testAccount.addr,
+            receiver: testAccount.addr,
+            amount: (0).algos(),
+            validityWindow: 100,
+          })
+          .send(),
       ).rejects.toThrow()
     })
   })
