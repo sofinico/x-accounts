@@ -34,6 +34,11 @@ export class LiquidEvmSdk {
     return lsig.address().toString()
   }
 
+  private getSignPayload(txnGroup: algosdk.Transaction[]): Uint8Array {
+    // For grouped txns of more than 1, sign the group ID; for standalone sign the txn ID
+    return txnGroup.length > 1 ? txnGroup[0].group! : txnGroup[0].rawTxID()
+  }
+
   /**
    * Get an algokit-utils compatible TransactionSigner for the given EVM address.
    *
@@ -42,7 +47,10 @@ export class LiquidEvmSdk {
    *   (e.g. `personal_sign`). Must return a 0x-prefixed 65-byte hex signature.
    * @returns `{ addr, signer }` — pass directly as `sender` + `signer` to algokit-utils methods
    */
-  async getSigner({ evmAddress, signMessage }: {
+  async getSigner({
+    evmAddress,
+    signMessage,
+  }: {
     evmAddress: string
     signMessage: (message: Uint8Array) => Promise<string>
   }): Promise<{ addr: string; signer: algosdk.TransactionSigner }> {
@@ -52,17 +60,13 @@ export class LiquidEvmSdk {
 
     const signer: algosdk.TransactionSigner = async (txnGroup, indexesToSign) => {
       // For grouped txns sign the group ID; for standalone sign the txn ID
-      const payload = txnGroup[0].group
-        ? txnGroup[0].group
-        : txnGroup[indexesToSign[0]].rawTxID()
+      const payload = this.getSignPayload(txnGroup)
 
       const evmSig = await signMessage(payload)
       const sigBytes = parseEvmSignature(evmSig)
       const signedLsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
 
-      return indexesToSign.map(i =>
-        algosdk.signLogicSigTransactionObject(txnGroup[i], signedLsig).blob,
-      )
+      return indexesToSign.map((i) => algosdk.signLogicSigTransactionObject(txnGroup[i], signedLsig).blob)
     }
 
     return { addr, signer }
@@ -80,23 +84,23 @@ export class LiquidEvmSdk {
    * @param signMessage - callback that signs a raw Uint8Array with the EVM wallet
    * @returns array of signed transaction blobs (Uint8Array[])
    */
-  async signTxn({ evmAddress, txns, signMessage }: {
+  async signTxn({
+    evmAddress,
+    txns,
+    signMessage,
+  }: {
     evmAddress: string
     txns: algosdk.Transaction[]
     signMessage: (message: Uint8Array) => Promise<string>
   }): Promise<Uint8Array[]> {
     const compiled = await this.getCompiled(evmAddress)
 
-    const payload = txns[0].group
-      ? txns[0].group
-      : txns[0].rawTxID()
+    const payload = this.getSignPayload(txns)
 
     const evmSig = await signMessage(payload)
     const sigBytes = parseEvmSignature(evmSig)
     const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
 
-    return txns.map(txn =>
-      algosdk.signLogicSigTransactionObject(txn, lsig).blob,
-    )
+    return txns.map((txn) => algosdk.signLogicSigTransactionObject(txn, lsig).blob)
   }
 }

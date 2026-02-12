@@ -3,11 +3,11 @@
   "sources": [
     "../../liquidevm/contract.algo.ts"
   ],
-  "mappings": "AASyB;;AAAmB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAnB;AAAA;;;AAAiC;;AAK1C;AACF;AAAA;;;AACA;;AAAA;;;AACA;;AAAwB;;AAAxB;AACqB;;AAAJ;AAGO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAN;;AAAA;AAAb;AAGY;AAAA;;AAAA;;AAAA;;AAGsB;AAAb;AAAX;;;AAEG;AAArB;AAAP;AApBiE;;",
+  "mappings": "AAQyB;;AAAqB;;AAArB;AAAA;;;AAAyB;;AAGlC;AACF;AAAA;;;AACA;;AAAA;;;AACA;;AAAwB;;AAAxB;AACqB;;AAAJ;AAGO;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAN;;AAAA;AAAb;AAGY;AAAA;;AAAA;;AAAA;;AAGsB;AAAb;AAAX;;;AAEG;AAArB;AAAP;AAlByD;;",
   "op_pc_offset": 1,
   "pc_events": {
     "0": {
-      "op": "global GroupID",
+      "op": "global GroupSize",
       "defined_out": [
         "tmp%0#0"
       ],
@@ -16,17 +16,17 @@
       ]
     },
     "2": {
-      "op": "pushbytes 0x0000000000000000000000000000000000000000000000000000000000000000",
+      "op": "pushint 1 // 1",
       "defined_out": [
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "1",
         "tmp%0#0"
       ],
       "stack_out": [
         "tmp%0#0",
-        "0x0000000000000000000000000000000000000000000000000000000000000000"
+        "1"
       ]
     },
-    "36": {
+    "4": {
       "op": "==",
       "defined_out": [
         "tmp%1#0"
@@ -35,11 +35,11 @@
         "tmp%1#0"
       ]
     },
-    "37": {
+    "5": {
       "op": "bz main_ternary_false@2",
       "stack_out": []
     },
-    "40": {
+    "8": {
       "op": "txn TxID",
       "defined_out": [
         "txnIdPayload#0"
@@ -48,7 +48,7 @@
         "txnIdPayload#0"
       ]
     },
-    "42": {
+    "10": {
       "block": "main_ternary_merge@3",
       "stack_in": [
         "txnIdPayload#0"
@@ -62,7 +62,7 @@
         "sig#0"
       ]
     },
-    "43": {
+    "11": {
       "op": "dup",
       "defined_out": [
         "sig#0",
@@ -74,7 +74,7 @@
         "sig#0 (copy)"
       ]
     },
-    "44": {
+    "12": {
       "op": "extract 0 32",
       "defined_out": [
         "r#0",
@@ -86,7 +86,7 @@
         "r#0"
       ]
     },
-    "47": {
+    "15": {
       "op": "dig 1",
       "stack_out": [
         "txnIdPayload#0",
@@ -95,7 +95,7 @@
         "sig#0 (copy)"
       ]
     },
-    "49": {
+    "17": {
       "op": "extract 32 32",
       "defined_out": [
         "r#0",
@@ -109,7 +109,7 @@
         "s#0"
       ]
     },
-    "52": {
+    "20": {
       "op": "uncover 2",
       "stack_out": [
         "txnIdPayload#0",
@@ -118,7 +118,7 @@
         "sig#0"
       ]
     },
-    "54": {
+    "22": {
       "op": "pushint 64 // 64",
       "defined_out": [
         "64",
@@ -134,7 +134,7 @@
         "64"
       ]
     },
-    "56": {
+    "24": {
       "op": "getbyte",
       "defined_out": [
         "r#0",
@@ -148,7 +148,7 @@
         "v#0"
       ]
     },
-    "57": {
+    "25": {
       "op": "pushint 27 // 27",
       "defined_out": [
         "27",
@@ -164,7 +164,7 @@
         "27"
       ]
     },
-    "59": {
+    "27": {
       "op": "-",
       "defined_out": [
         "r#0",
@@ -178,7 +178,7 @@
         "recoveryId#0"
       ]
     },
-    "60": {
+    "28": {
       "op": "pushbytes \"\\x19Ethereum Signed Message:\\n32\"",
       "defined_out": [
         "\"\\x19Ethereum Signed Message:\\n32\"",
@@ -194,7 +194,7 @@
         "\"\\x19Ethereum Signed Message:\\n32\""
       ]
     },
-    "90": {
+    "58": {
       "op": "uncover 4",
       "defined_out": [
         "\"\\x19Ethereum Signed Message:\\n32\"",
@@ -211,7 +211,7 @@
         "txnIdPayload#0"
       ]
     },
-    "92": {
+    "60": {
       "op": "concat",
       "defined_out": [
         "r#0",
@@ -226,7 +226,7 @@
         "tmp%8#0"
       ]
     },
-    "93": {
+    "61": {
       "op": "keccak256",
       "defined_out": [
         "digest#0",
@@ -241,7 +241,7 @@
         "digest#0"
       ]
     },
-    "94": {
+    "62": {
       "op": "swap",
       "stack_out": [
         "r#0",
@@ -250,7 +250,7 @@
         "recoveryId#0"
       ]
     },
-    "95": {
+    "63": {
       "op": "uncover 3",
       "stack_out": [
         "s#0",
@@ -259,7 +259,7 @@
         "r#0"
       ]
     },
-    "97": {
+    "65": {
       "op": "uncover 3",
       "stack_out": [
         "digest#0",
@@ -268,7 +268,7 @@
         "s#0"
       ]
     },
-    "99": {
+    "67": {
       "op": "ecdsa_pk_recover Secp256k1",
       "defined_out": [
         "pubkeyX#0",
@@ -279,7 +279,7 @@
         "pubkeyY#0"
       ]
     },
-    "101": {
+    "69": {
       "op": "concat",
       "defined_out": [
         "tmp%10#0"
@@ -288,7 +288,7 @@
         "tmp%10#0"
       ]
     },
-    "102": {
+    "70": {
       "op": "keccak256",
       "defined_out": [
         "tmp%11#0"
@@ -297,7 +297,7 @@
         "tmp%11#0"
       ]
     },
-    "103": {
+    "71": {
       "op": "extract 12 20",
       "defined_out": [
         "recoveredAddress#0"
@@ -306,7 +306,7 @@
         "recoveredAddress#0"
       ]
     },
-    "106": {
+    "74": {
       "op": "bytec_0 // TMPL_OWNER",
       "defined_out": [
         "TMPL_OWNER",
@@ -317,7 +317,7 @@
         "TMPL_OWNER"
       ]
     },
-    "107": {
+    "75": {
       "op": "==",
       "defined_out": [
         "tmp%13#0"
@@ -326,11 +326,11 @@
         "tmp%13#0"
       ]
     },
-    "108": {
+    "76": {
       "op": "return",
       "stack_out": []
     },
-    "109": {
+    "77": {
       "block": "main_ternary_false@2",
       "stack_in": [],
       "op": "global GroupID",
@@ -341,7 +341,7 @@
         "txnIdPayload#0"
       ]
     },
-    "111": {
+    "79": {
       "op": "b main_ternary_merge@3"
     }
   }

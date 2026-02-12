@@ -1,8 +1,8 @@
 import { Config } from '@algorandfoundation/algokit-utils'
 import { registerDebugEventHandlers } from '@algorandfoundation/algokit-utils-debug'
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing'
-import { ethers } from 'ethers'
 import algosdk from 'algosdk'
+import { ethers } from 'ethers'
 import { LiquidEvmSdk } from 'liquid-evm-sdk'
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest'
 
@@ -17,7 +17,9 @@ const signMessage = (msg: Uint8Array) => evmWallet.signMessage(msg)
 describe('LogicSig EVM signature validation', () => {
   const localnet = algorandFixture()
   beforeAll(() => {
-    Config.configure({ debug: true })
+    Config.configure({
+      // debug: true
+    })
     registerDebugEventHandlers()
   })
   beforeEach(localnet.newScope)
@@ -104,9 +106,7 @@ describe('LogicSig EVM signature validation', () => {
         signMessage,
       })
 
-      await expect(
-        algorand.client.algod.sendRawTransaction(signed).do(),
-      ).rejects.toThrow()
+      await expect(algorand.client.algod.sendRawTransaction(signed).do()).rejects.toThrow()
     })
   })
 
@@ -118,7 +118,8 @@ describe('LogicSig EVM signature validation', () => {
 
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
-      await algorand.newGroup()
+      await algorand
+        .newGroup()
         .addPayment({
           sender: addr,
           receiver: addr,
@@ -143,7 +144,8 @@ describe('LogicSig EVM signature validation', () => {
       await algorand.account.ensureFundedFromEnvironment(addr, (1).algos())
 
       await expect(
-        algorand.newGroup()
+        algorand
+          .newGroup()
           .addPayment({
             sender: addr,
             receiver: addr,

@@ -6,7 +6,7 @@ import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { LiquidEvmSdk } from "liquid-evm-sdk";
 import algosdk from "algosdk";
 import "./App.css";
-import base32 from "hi-base32"
+import base32 from "hi-base32";
 
 const algorand = AlgorandClient.defaultLocalNet();
 algorand.setDefaultValidityWindow(1000);
@@ -162,11 +162,7 @@ function Algorand() {
         <div className="card">
           <p>
             Success:{" "}
-            <a
-              href={`https://l.algo.surf/${sendState.txId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={`https://l.algo.surf/${sendState.txId}`} target="_blank" rel="noopener noreferrer">
               {sendState.txId}
             </a>
           </p>
@@ -185,7 +181,9 @@ function App() {
   return (
     <>
       <h1>Liquid EVM</h1>
-      <ConnectButton />
+      <div className="connect-wrapper">
+        <ConnectButton showBalance={false} />
+      </div>
       <Algorand />
     </>
   );

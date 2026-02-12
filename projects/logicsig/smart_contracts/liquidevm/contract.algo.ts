@@ -2,14 +2,11 @@ import { Bytes, Global, LogicSig, op, TemplateVar, Txn, uint64 } from '@algorand
 import { StaticBytes } from '@algorandfoundation/algorand-typescript/arc4'
 
 const owner = TemplateVar<StaticBytes<20>>('OWNER')
-const ZeroBytes32 = Bytes.fromHex('0000000000000000000000000000000000000000000000000000000000000000')
 
 export class LiquidEvmLsig extends LogicSig {
   public program() {
-    // payload to sign is the 32 byte raw group ID (if one exists) otherwise the transaction ID of the current transaction
-    const txnIdPayload = Global.groupId === ZeroBytes32 ? Txn.txId : Global.groupId
-    // TODO actually smaller/better to do txnId if group size is 1, group id if more
-    // meaning we would ignore group ID in group size=1 scenario by convention
+    // payload to sign is the 32 byte transaction group ID (if group size > 1) otherwise the transaction ID of the current transaction
+    const txnIdPayload = Global.groupSize === 1 ? Txn.txId : Global.groupId
 
     // Get concatenated signature from arg0: R (32) || S (32) || V (1)
     const sig = op.arg(0)

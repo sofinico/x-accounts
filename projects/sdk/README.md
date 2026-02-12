@@ -84,7 +84,7 @@ await algorand.send.payment({
 
 ### Send an atomic group
 
-For grouped transactions, the signer automatically signs the **group ID** instead of individual transaction IDs. The on-chain logic signature handles this automatically.
+For grouped transactions of size > 1, the signer automatically signs the **group ID** instead of individual transaction IDs. The on-chain logic signature handles this automatically.
 
 ```typescript
 await algorand.newGroup()
@@ -104,7 +104,7 @@ await algorand.newGroup()
 
 ### Sign raw algosdk transactions
 
-For full control over transaction construction and group ID assignment, use `signTxn`. This is useful when `algorand.newGroup()` doesn't assign a group ID (e.g. single-transaction groups) or when working directly with algosdk.
+For full control over transaction construction and group ID assignment, use `signTxn`. This is useful when working directly with algosdk.
 
 ```typescript
 import algosdk from "algosdk"
@@ -156,7 +156,7 @@ Signs one or more algosdk `Transaction` objects with the EVM lsig. Returns an ar
 - `txns` — algosdk `Transaction[]` to sign (must already have group ID assigned via `algosdk.assignGroupID` if grouped)
 - `signMessage` — `(message: Uint8Array) => Promise<string>` — signs a raw message with the EVM wallet
 
-The payload signed is the group ID if `txns[0].group` is set, otherwise the transaction ID.
+The payload signed is the group ID if there are more than 1 transactions, otherwise the transaction ID.
 
 ### Utilities
 
