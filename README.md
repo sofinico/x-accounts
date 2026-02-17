@@ -150,25 +150,17 @@ algokit project run build
 ```
 
 This compiles:
-1. Smart contracts to TEAL
+1. Logic sig to TEAL
 2. TypeScript SDK
-3. Frontend application
+3. Use-wallet packages
+4. Use-wallet-ui package
+5. Frontend
 
 ### Test
 
 ```bash
 cd projects/evm-logicsig
 algokit project run test
-```
-
-### Deploy
-
-```bash
-# Deploy to LocalNet
-algokit project deploy localnet
-
-# Deploy to TestNet
-algokit project deploy testnet
 ```
 
 ## Contributing
