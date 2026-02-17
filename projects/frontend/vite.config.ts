@@ -1,11 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), nodePolyfills({ include: ['buffer'], globals: { process: false } })],
+  plugins: [react()],
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
-    dedupe: ['react', 'react-dom', '@txnlab/use-wallet-react'],
+    alias: {
+      buffer: 'buffer',
+    },
+    dedupe: [
+      'react',
+      'react-dom',
+      '@txnlab/use-wallet-react',
+      'algosdk',
+      '@algorandfoundation/algokit-utils',
+      'liquid-accounts-evm',
+    ],
+  },
+  optimizeDeps: {
+    include: ['buffer'],
   },
 })

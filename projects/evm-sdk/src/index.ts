@@ -1,8 +1,26 @@
 import type { AlgorandClient } from "@algorandfoundation/algokit-utils"
 import algosdk from "algosdk"
 import { ALGO_FUNDING_LSIG_TEAL } from "./teal"
-import { hexToBytes, parseEvmSignature } from "./utils"
-export { hexToBytes, parseEvmSignature } from "./utils"
+import {
+  ALGORAND_CHAIN_ID,
+  ALGORAND_CHAIN_ID_HEX,
+  ALGORAND_EVM_CHAIN_CONFIG,
+  EIP712_DOMAIN,
+  EIP712_TYPES,
+  formatEIP712Message,
+  hexToBytes,
+  parseEvmSignature,
+} from "./utils"
+export {
+  ALGORAND_CHAIN_ID,
+  ALGORAND_CHAIN_ID_HEX,
+  ALGORAND_EVM_CHAIN_CONFIG,
+  EIP712_DOMAIN,
+  EIP712_TYPES,
+  formatEIP712Message,
+  hexToBytes,
+  parseEvmSignature,
+} from "./utils"
 
 export class LiquidEvmSdk {
   private algorand: AlgorandClient
@@ -41,7 +59,7 @@ export class LiquidEvmSdk {
   }
 
   /**
-   * Sign one or more algosdk Transactions with the EVM lsig.
+   * Sign one or more algosdk Transactions with the EVM lsig using EIP-712 typed data.
    *
    * The payload signed by the EVM wallet is:
    * - The group ID if `txns[0].group` is set
@@ -49,23 +67,77 @@ export class LiquidEvmSdk {
    *
    * @param evmAddress - hex EVM address (with or without 0x prefix)
    * @param txns - algosdk Transaction(s) to sign (must already have group ID assigned if grouped)
-   * @param signMessage - callback that signs a raw Uint8Array with the EVM wallet
+   * @param signMessage - callback that receives the raw transaction/group ID payload and should
+   *   return an EIP-712 signature. The callback should format the payload as EIP-712 typed data
+   *   and call `eth_signTypedData_v4`. Use `formatEIP712Message(payload)` helper to format.
    * @returns array of signed transaction blobs (Uint8Array[])
+   *
+   * @example
+   * ```typescript
+   * import { formatEIP712Message, EIP712_DOMAIN, EIP712_TYPES } from "liquid-accounts-evm"
+   *
+   * const signMessage = async (payload: Uint8Array) => {
+   *   const message = formatEIP712Message(payload)
+   *   return wallet.signTypedData(EIP712_DOMAIN, EIP712_TYPES, message)
+   * }
+   *
+   * const signed = await sdk.signTxn({ evmAddress, txns, signMessage })
+   * ```
    */
+  async signTxn(params: {
+    evmAddress: string
+    txns: algosdk.Transaction[]
+    signMessage: (message: Uint8Array) => Promise<string>
+  }): Promise<Uint8Array[]>
+
+  /**
+   * Sign one or more algosdk Transactions with the EVM lsig using a pre-computed signature.
+   *
+   * Use this variant when you already have the EIP-712 signature for the transaction/group ID.
+   *
+   * @param evmAddress - hex EVM address (with or without 0x prefix)
+   * @param txns - algosdk Transaction(s) to sign (must already have group ID assigned if grouped)
+   * @param signature - pre-computed EIP-712 signature (0x-prefixed 65-byte hex string)
+   * @returns array of signed transaction blobs (Uint8Array[])
+   *
+   * @example
+   * ```typescript
+   * const payload = LiquidEvmSdk.getSignPayload(txns)
+   * const message = formatEIP712Message(payload)
+   * const signature = await wallet.signTypedData(EIP712_DOMAIN, EIP712_TYPES, message)
+   *
+   * const signed = await sdk.signTxn({ evmAddress, txns, signature })
+   * ```
+   */
+  async signTxn(params: {
+    evmAddress: string
+    txns: algosdk.Transaction[]
+    signature: string
+  }): Promise<Uint8Array[]>
+
   async signTxn({
     evmAddress,
     txns,
     signMessage,
+    signature,
   }: {
     evmAddress: string
     txns: algosdk.Transaction[]
-    signMessage: (message: Uint8Array) => Promise<string>
+    signMessage?: (message: Uint8Array) => Promise<string>
+    signature?: string
   }): Promise<Uint8Array[]> {
     const compiled = await this.getCompiled(evmAddress)
 
-    const payload = LiquidEvmSdk.getSignPayload(txns)
+    let evmSig: string
+    if (signature) {
+      evmSig = signature
+    } else if (signMessage) {
+      const payload = LiquidEvmSdk.getSignPayload(txns)
+      evmSig = await signMessage(payload)
+    } else {
+      throw new Error("Either signMessage or signature must be provided")
+    }
 
-    const evmSig = await signMessage(payload)
     const sigBytes = parseEvmSignature(evmSig)
     const lsig = new algosdk.LogicSigAccount(compiled, [sigBytes])
 
@@ -73,12 +145,25 @@ export class LiquidEvmSdk {
   }
 
   /**
-   * Get an algokit-utils compatible TransactionSigner for the given EVM address.
+   * Get an algokit-utils compatible TransactionSigner for the given EVM address using EIP-712 typed data signing.
    *
    * @param evmAddress - hex EVM address (with or without 0x prefix)
-   * @param signMessage - callback that signs a raw Uint8Array message with the EVM wallet
-   *   (e.g. `personal_sign`). Must return a 0x-prefixed 65-byte hex signature.
+   * @param signMessage - callback that receives the raw transaction/group ID payload and should
+   *   return an EIP-712 signature. The callback should format the payload as EIP-712 typed data
+   *   and call `eth_signTypedData_v4`. Use `formatEIP712Message(payload)` helper to format.
    * @returns `{ addr, signer }` — pass directly as `sender` + `signer` to algokit-utils methods
+   *
+   * @example
+   * ```typescript
+   * import { formatEIP712Message, EIP712_DOMAIN, EIP712_TYPES } from "liquid-accounts-evm"
+   *
+   * const signMessage = async (payload: Uint8Array) => {
+   *   const message = formatEIP712Message(payload)
+   *   return wallet.signTypedData(EIP712_DOMAIN, EIP712_TYPES, message)
+   * }
+   *
+   * const { addr, signer } = await sdk.getSigner({ evmAddress, signMessage })
+   * ```
    */
   async getSigner({
     evmAddress,
@@ -92,7 +177,7 @@ export class LiquidEvmSdk {
     const addr = lsig.address().toString()
 
     const signer: algosdk.TransactionSigner = async (txnGroup, indexesToSign) => {
-      // For grouped txns sign the group ID; for standalone sign the txn ID
+      // Get the payload (group ID for grouped txns, txn ID for standalone)
       const payload = LiquidEvmSdk.getSignPayload(txnGroup)
 
       const evmSig = await signMessage(payload)

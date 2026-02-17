@@ -29,8 +29,7 @@ evm-logicsig/
 ├── smart_contracts/
 │   ├── liquidevm/
 │   │   ├── logicsig.algo.ts        # Main LogicSig contract
-│   │   ├── contract.e2e.spec.ts    # E2E tests
-│   │   └── deploy-config.ts        # Deployment configuration
+│   │   └── logicsig.e2e.spec.ts    # E2E tests
 │   ├── artifacts/                   # Compiled TEAL output
 ```
 
@@ -39,24 +38,28 @@ evm-logicsig/
 ### Signature Verification Flow
 
 ```
-1. EVM Wallet signs:    personal_sign(keccak256("\x19Ethereum Signed Message:\n32" + txnId))
+1. EVM Wallet signs:    eth_signTypedData_v4(EIP-712 typed data with txnId)
                         ↓
 2. LogicSig receives:   R (32 bytes) || S (32 bytes) || V (1 byte) in arg[0]
                         ↓
-3. Contract recovers:   ecdsaPkRecover(digest, recoveryId, r, s) → pubkey
+3. Contract computes:   digest = keccak256("\x19\x01" + domainSeparator + keccak256(messageTypeHash + payload))
                         ↓
-4. Contract derives:    keccak256(pubkeyX || pubkeyY)[12:32] → address
+4. Contract recovers:   ecdsaPkRecover(digest, recoveryId, r, s) → pubkey
                         ↓
-5. Contract validates:  recoveredAddress === templateOwner
+5. Contract derives:    keccak256(pubkeyX || pubkeyY)[12:32] → address
+                        ↓
+6. Contract validates:  recoveredAddress === templateOwner
 ```
 
 ### Template Variables
 
-The contract uses one template variable:
+The contract uses three template variables:
 
 - **OWNER**: 20-byte Ethereum address that controls this LogicSig instance
+- **DOMAIN_SEPARATOR**: 32-byte precomputed EIP-712 domain separator (`keccak256(domainTypeHash + nameHash + versionHash + chainId)`)
+- **MESSAGE_TYPE_HASH**: 32-byte precomputed EIP-712 message type hash (`keccak256("AlgorandTransaction(bytes32 Transaction ID)")`)
 
-When compiling, the SDK substitutes the EVM address into the TEAL bytecode, creating a unique LogicSig program for each EVM address.
+When compiling, the SDK substitutes these values into the TEAL bytecode, creating a unique LogicSig program for each EVM address.
 
 ## Setup
 
@@ -154,10 +157,11 @@ The LogicSig is written in [Algorand TypeScript](https://github.com/algorandfoun
 **Key operations:**
 
 1. **Extract signature components** from arg[0]: R (32), S (32), V (1)
-2. **Compute digest**: `keccak256("\x19Ethereum Signed Message:\n32" + payload)`
-3. **Recover public key**: `ecdsaPkRecover(Secp256k1, digest, recoveryId, r, s)`
-4. **Derive address**: Last 20 bytes of `keccak256(pubkeyX || pubkeyY)`
-5. **Validate**: `recoveredAddress === owner`
+2. **Compute EIP-712 message hash**: `keccak256(messageTypeHash + payload)`
+3. **Compute EIP-712 digest**: `keccak256("\x19\x01" + domainSeparator + messageHash)`
+4. **Recover public key**: `ecdsaPkRecover(Secp256k1, digest, recoveryId, r, s)`
+5. **Derive address**: Last 20 bytes of `keccak256(pubkeyX || pubkeyY)`
+6. **Validate**: `recoveredAddress === owner`
 
 **Payload signed:**
 - Single transaction: Transaction ID
@@ -175,9 +179,9 @@ This prevents signature replay across different transactions or groups.
 
 ## Security Considerations
 
-- **Signature malleability**: The contract accepts both high and low S values (standard ECDSA)
+- **Signature normalization**: The SDK automatically normalizes signatures to lower-S form before submission because the AVM only accepts lower-S signatures
+- **EIP-712 domain separation**: Prevents cross-app and cross-network signature replay
 - **Template immutability**: Once compiled, the owner address cannot be changed
-- **No reentrancy**: LogicSigs are stateless and cannot call other contracts
 - **Transaction binding**: Signatures are bound to specific transactions via txnId/groupId
 
 ## Usage with SDK

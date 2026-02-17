@@ -1,3 +1,6 @@
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 import { StrictMode, useCallback, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { WalletProvider } from "@txnlab/use-wallet-react";

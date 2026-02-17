@@ -1,21 +1,23 @@
 # Liquid Accounts
 
-**EVM-controlled Algorand accounts via ECDSA signature verification**
+**EVM Account Abstraction on Algorand via ECDSA signature verification**
 
-Liquid EVM enables Ethereum wallets (MetaMask, WalletConnect, etc.) to control Algorand accounts using an ECDSA signature verification LogicSig. Sign once with your Ethereum wallet to authorize transactions on Algorand—no seed phrases, no new accounts.
+Liquid EVM enables Ethereum wallets (MetaMask, etc.) to control Algorand accounts using an ECDSA signature verification LogicSig. Sign once with your Ethereum wallet to authorize transactions on Algorand—no seed phrases, no new wallets.
 
 ## Overview
 
 This monorepo contains:
 
-- **[Smart Contract](projects/evm-logicsig/)** - LogicSig that verifies ECDSA (secp256k1) signatures from EVM addresses
+- **[Logic Sig](projects/evm-logicsig/)** - LogicSig that verifies ECDSA (secp256k1) signatures from EVM addresses
 - **[SDK](projects/evm-sdk/)** - TypeScript SDK for integrating EVM wallet signing with Algorand
-- **[Frontend](projects/frontend/)** - React demo application with MetaMask integration
+- **[use-wallet](projects/use-wallet/)** - @txnlab/use-wallet with Liquid EVM / MetaMask support
+- **[use-wallet-ui](projects/use-wallet-ui/)** - @txnlab/use-wallet-ui with Liquid EVM / MetaMask support
+- **[frontend](projects/frontend/)** - React demo application with MetaMask integration
 
 ## How It Works
 
 1. **Derive Algorand Address**: Each EVM address (20 bytes) maps deterministically to a unique Algorand LogicSig address
-2. **Sign with EVM Wallet**: MetaMask signs the transaction/group ID using Ethereum's `personal_sign`
+2. **Sign with EVM Wallet**: MetaMask signs the transaction/group ID using EIP-712 typed structured data (`eth_signTypedData_v4`)
 3. **Verify on Algorand**: The LogicSig recovers the public key from the signature and verifies it matches the template owner
 4. **Execute Transaction**: If verification succeeds, the transaction is approved
 
@@ -26,7 +28,16 @@ The LogicSig contract:
 - Uses `ecdsaPkRecover` (secp256k1) to recover the signer's public key
 - Derives the Ethereum address from the recovered public key (last 20 bytes of keccak256)
 - Compares the recovered address against the template owner
-- Signs either transaction ID (single txn) or group ID (atomic groups)
+- Computes an EIP-712 digest over the transaction ID (single txn) or group ID (atomic groups), providing domain separation
+
+### Why EIP-712 Structured Signing
+
+The LogicSig uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) typed structured data rather than raw `personal_sign` for two reasons:
+
+- **Domain separation**: The EIP-712 domain (`name`, `version`, `chainId`) is embedded in the signed digest, preventing signatures from being replayed across different applications or protocols.
+- **Human-readable signing prompts**: EVM wallets (MetaMask, etc.) display the structured fields to the user instead of an opaque hex blob, making it clear what is being authorized.
+
+**Chain ID approach**: A single `chainId` of `4160` is used across all Algorand networks (MainNet, TestNet, LocalNet). Using per-network chain IDs would cause different derived Algorand addresses per network for the same EVM account, which is undesirable. Network-level replay protection is instead provided by the Algorand transaction's genesis hash, which is already part of the signed transaction ID/group ID.
 
 ## Quick Start
 
@@ -75,7 +86,7 @@ liquid-accounts/
 │   ├── evm-sdk/         # TypeScript SDK
 │   ├── frontend/        # React demo application
 │   └── use-wallet/      # Enhanced @txnlab/use-wallet with Liquid EVM support
-│   └── use-wallet-ui/   # @txnlab/use-wallet-ui with meta-wallet, signing explainer, welcome dialog
+│   └── use-wallet-ui/   # Enhanced @txnlab/use-wallet-ui with Liquid EVM support
 ```
 
 ## SDK Usage
@@ -91,7 +102,7 @@ pnpm add liquid-accounts-evm
 Basic usage:
 
 ```typescript
-import { LiquidEvmSdk } from 'liquid-accounts-evm'
+import { LiquidEvmSdk, formatEIP712Message, EIP712_DOMAIN, EIP712_TYPES } from 'liquid-accounts-evm'
 import { AlgorandClient } from '@algorandfoundation/algokit-utils'
 
 // Initialize
@@ -103,14 +114,20 @@ const algoAddress = await sdk.getAddress({
   evmAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
 })
 
-// Get a transaction signer
+// Get a transaction signer (EIP-712 typed data signing)
 const { addr, signer } = await sdk.getSigner({
   evmAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-  signMessage: async (message) => {
-    // Call MetaMask or other EVM wallet
+  signMessage: async (payload) => {
+    const message = formatEIP712Message(payload)
+    const data = JSON.stringify({
+      domain: EIP712_DOMAIN,
+      types: EIP712_TYPES,
+      message,
+      primaryType: "AlgorandTransaction"
+    })
     return window.ethereum.request({
-      method: 'personal_sign',
-      params: [message, evmAddress]
+      method: 'eth_signTypedData_v4',
+      params: [evmAddress, data]
     })
   }
 })
@@ -120,7 +137,7 @@ await algorand.send.payment({
   sender: addr,
   signer: signer,
   receiver: recipientAddress,
-  amount: AlgoAmount.Algos(1)
+  amount: (1).algos()
 })
 ```
 
@@ -165,8 +182,10 @@ Contributions are welcome! Please see individual project READMEs for specific de
 ## Security Considerations
 
 - The LogicSig verifies signatures using ECDSA secp256k1 curve
-- Template variables ensure each EVM address has a unique Algorand address
-- The contract signs transaction/group IDs, preventing signature replay
+- A template variable (owner address) ensures each EVM address has a unique Algorand address
+- Signatures are automatically normalized to lower-S form because the AVM only accepts lower-S signatures
+- EIP-712 domain separation prevents AVM<>EVM contamination
+- The contract binds signatures to specific transaction/group IDs, preventing replay across AVM networks (genesisHash) & time (first/lastRound)
 - Always verify the derived Algorand address matches expectations
 
 ## CI/CD
