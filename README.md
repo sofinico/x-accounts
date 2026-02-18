@@ -143,6 +143,30 @@ await algorand.send.payment({
 })
 ```
 
+## use-wallet
+
+The use-wallet fork introduces a base class for liquid EVM accounts, as well as an implementation for Metamask. This should be a drop-in replacement for Algorand dApps.
+
+## use-wallet-ui & meta-wallet
+
+Opinionated fork of use-wallet-ui adds "meta-wallet" functionality to dApps:
+
+- transaction transparency, see what you are signing before you sign
+  - security context: runs in dApp; vulnerable in malicious or compromised dApps
+- Initiate transactions for managing assets, sending ALGO, etc
+  - WIP
+- Onboarding guide for liquid-EVM connected accounts with 0 ALGO balance
+
+Integration Effort:
+
+- Drop-in for transaction transparency
+- Minor integration needed for wallet management (integrate <WalletButton />)
+
+Possible future work:
+
+- Develop optional companion extension for dApp-independent txn verification
+- Integrated bridging to bootstrap account w/ USDC without leaving dApp
+
 ## Development Workflow
 
 ### Build
