@@ -13,6 +13,7 @@ export {
   ALGORAND_EVM_CHAIN_CONFIG,
   EIP712_DOMAIN,
   EIP712_TYPES,
+  EVM_LSIG_TYPE,
   buildTypedData,
   formatEIP712Message,
   hexToBytes,

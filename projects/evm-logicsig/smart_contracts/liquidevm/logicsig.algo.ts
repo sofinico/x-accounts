@@ -7,7 +7,7 @@
  *
  * How it works:
  * 1. The EVM wallet signs the transaction/group ID using EIP-712 typed structured data
- * 2. The signature (R, S, V) is passed as arg0 to the LogicSig
+ * 2. A type byte (0x01) followed by the signature (R, S, V) is passed as arg0 to the LogicSig
  * 3. The contract recovers the signer's public key using ecdsaPkRecover
  * 4. It derives the Ethereum address from the recovered public key
  * 5. Transaction is approved if the derived address matches the template owner
@@ -20,7 +20,7 @@
  * EIP-712 Message Type:
  * - AlgorandTransaction(bytes32 Transaction ID)
  */
-import { Bytes, Global, LogicSig, op, TemplateVar, Txn, uint64 } from '@algorandfoundation/algorand-typescript'
+import { assert, Bytes, Global, LogicSig, op, TemplateVar, Txn, uint64 } from '@algorandfoundation/algorand-typescript'
 import { StaticBytes } from '@algorandfoundation/algorand-typescript/arc4'
 
 // Template variable: the 20-byte Ethereum address that controls this LogicSig
@@ -32,11 +32,17 @@ export class LiquidEvmLsig extends LogicSig {
     // otherwise the transaction ID of the current transaction
     const txnIdPayload = Global.groupSize === 1 ? Txn.txId : Global.groupId
 
-    // Parse the concatenated ECDSA signature from arg0: R (32 bytes) || S (32 bytes) || V (1 byte)
+    // Parse arg0: Type (1 byte) || R (32 bytes) || S (32 bytes) || V (1 byte)
     const sig = op.arg(0)
-    const r = op.extract(sig, 0, 32)
-    const s = op.extract(sig, 32, 32)
-    const v = op.btoi(op.extract(sig, 64, 1))
+
+    // Verify type byte is 0x01 (EVM signature type).
+    // The type byte allows future multi-scheme LogicSigs that branch on signature type
+    // (e.g. 0x01 = EVM secp256k1, 0x02 = Passkey secp256r1), enabling composed auth.
+    assert(op.extract(sig, 0, 1) === Bytes.fromHex('01'))
+
+    const r = op.extract(sig, 1, 32)
+    const s = op.extract(sig, 33, 32)
+    const v = op.btoi(op.extract(sig, 65, 1))
     const recoveryId: uint64 = v - 27 // Ethereum uses 27/28, AVM expects 0/1
 
     // EIP-712 Domain Separator (precomputed off-chain)

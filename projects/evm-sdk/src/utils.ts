@@ -56,16 +56,30 @@ function normalizeLowerS(sigBytes: Uint8Array): Uint8Array {
 }
 
 /**
- * Parse 0x-prefixed 65-byte EVM signature hex into R(32) || S(32) || V(1).
+ * LogicSig type byte for EVM (secp256k1) signatures, prepended to arg0.
+ * Enables future multi-scheme LogicSigs that branch on signature type
+ * (e.g. 0x01 = EVM, 0x02 = Passkey), supporting composed auth like EVM || Passkey.
+ */
+export const EVM_LSIG_TYPE = 0x01
+
+/**
+ * Parse 0x-prefixed 65-byte EVM signature hex into the LogicSig arg format:
+ * Type (1 byte, 0x01) || R(32) || S(32) || V(1).
  * Automatically normalizes to lower-S form to prevent signature malleability.
  */
 export function parseEvmSignature(sigHex: string): Uint8Array {
   const hex = sigHex.startsWith("0x") ? sigHex.slice(2) : sigHex
-  const result = new Uint8Array(65)
+  const sigBytes = new Uint8Array(65)
   for (let i = 0; i < 65; i++) {
-    result[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16)
+    sigBytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16)
   }
-  return normalizeLowerS(result)
+  const normalized = normalizeLowerS(sigBytes)
+
+  // Prepend type byte
+  const result = new Uint8Array(66)
+  result[0] = EVM_LSIG_TYPE
+  result.set(normalized, 1)
+  return result
 }
 
 /**
