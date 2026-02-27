@@ -21,15 +21,14 @@ import App from "./App.tsx";
 
 type AlgorandNetwork = "localnet" | "testnet" | "mainnet";
 
-function makeWagmiConfig() {
-  return getDefaultConfig({
+const wagmiConfig = getDefaultConfig({
     appName: "My Liquid EVM Accounts Demo",
     projectId: "fcfde0713d43baa0d23be0773c80a72b",
     chains: [algorandChain],
-  });
-}
+  })
 
-function makeWalletManager(network: AlgorandNetwork, wagmiConfig: ReturnType<typeof makeWagmiConfig>) {
+
+function makeWalletManager(network: AlgorandNetwork) {
   return new WalletManager({
     options: {
       debug: true,
@@ -63,8 +62,7 @@ function Root() {
 
   const [network, setNetworkState] = useState<AlgorandNetwork>(getInitialNetwork);
 
-  const wagmiConfig = useMemo(() => makeWagmiConfig(), []);
-  const walletManager = useMemo(() => makeWalletManager(network, wagmiConfig), []);
+  const walletManager = useMemo(() => makeWalletManager(network), []);
 
   const setNetwork = useCallback((n: AlgorandNetwork) => {
     localStorage.setItem("algorand-network", n);
