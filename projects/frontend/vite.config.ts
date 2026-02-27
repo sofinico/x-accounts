@@ -14,10 +14,14 @@ export default defineConfig({
     dedupe: [
       'react',
       'react-dom',
+      '@tanstack/react-query',
       '@txnlab/use-wallet-react',
       'algosdk',
       '@algorandfoundation/algokit-utils',
-      'liquid-accounts-evm',
+      'wagmi',
+      '@wagmi/core',
+      'viem',
+      '@rainbow-me/rainbowkit',
     ],
   },
   optimizeDeps: {
