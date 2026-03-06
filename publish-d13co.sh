@@ -41,9 +41,9 @@ TO_SCOPE="@d13co"
 PACKAGE_JSONS=(
   "$ROOT/projects/use-wallet/packages/use-wallet/package.json"
   "$ROOT/projects/use-wallet/packages/use-wallet-react/package.json"
-  "$ROOT/projects/use-wallet/packages/use-wallet-vue/package.json"
-  "$ROOT/projects/use-wallet/packages/use-wallet-solid/package.json"
-  "$ROOT/projects/use-wallet/packages/use-wallet-svelte/package.json"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-vue/package.json"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-solid/package.json"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-svelte/package.json"
   # use-wallet-ui packages
   "$ROOT/projects/use-wallet-ui/packages/liquid-ui/package.json"
   "$ROOT/projects/use-wallet-ui/packages/react/package.json"
@@ -53,9 +53,9 @@ PACKAGE_JSONS=(
 PUBLISH_DIRS=(
   "$ROOT/projects/use-wallet/packages/use-wallet"
   "$ROOT/projects/use-wallet/packages/use-wallet-react"
-  "$ROOT/projects/use-wallet/packages/use-wallet-vue"
-  "$ROOT/projects/use-wallet/packages/use-wallet-solid"
-  "$ROOT/projects/use-wallet/packages/use-wallet-svelte"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-vue"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-solid"
+  # "$ROOT/projects/use-wallet/packages/use-wallet-svelte"
   "$ROOT/projects/use-wallet-ui/packages/liquid-ui"
   "$ROOT/projects/use-wallet-ui/packages/react"
 )
@@ -100,9 +100,9 @@ restore_files() {
 REWRITE_NAMES=(
   use-wallet
   use-wallet-react
-  use-wallet-vue
-  use-wallet-solid
-  use-wallet-svelte
+  # use-wallet-vue
+  # use-wallet-solid
+  # use-wallet-svelte
   use-wallet-ui-react
   use-wallet-ui-monorepo
   use-wallet-ui-e2e
