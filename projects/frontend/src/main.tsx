@@ -23,8 +23,8 @@ import { ErrorBoundary } from "./ErrorBoundary.tsx";
 type AlgorandNetwork = "localnet" | "testnet" | "mainnet";
 
 const wagmiConfig = getDefaultConfig({
-    appName: "My Liquid EVM Accounts Demo",
-    projectId: "fcfde0713d43baa0d23be0773c80a72b",
+    appName: "Algo x EVM Demo",
+    projectId: "3404862cca4501e4d84be405269d955c",
     chains: [algorandChain],
   })
 
