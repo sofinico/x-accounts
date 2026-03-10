@@ -41,7 +41,7 @@ The logic signature:
 
 ```typescript
 {
-  name: "Algo x EVM",
+  name: "Algorand x EVM",
   version: "1",
 }
 ```
@@ -50,7 +50,7 @@ The logic signature:
 
 ```typescript
 {
-  AlgorandTransaction: [{ name: "Transaction ID", type: "bytes32" }]
+  "Algorand Transaction": [{ name: "Transaction ID", type: "bytes32" }]
 }
 ```
 
@@ -262,9 +262,9 @@ interface SignTypedDataParams {
   domain: { name: string; version: string }
   types: {
     EIP712Domain: Array<{ name: string; type: string }>
-    AlgorandTransaction: Array<{ name: string; type: string }>
+    "Algorand Transaction": Array<{ name: string; type: string }>
   }
-  primaryType: "AlgorandTransaction"
+  primaryType: "Algorand Transaction"
   message: { "Transaction ID": string }
 }
 ```
@@ -308,7 +308,7 @@ The EIP-712 domain used for signing:
 
 ```typescript
 {
-  name: "Algo x EVM",
+  name: "Algorand x EVM",
   version: "1",
 }
 ```
@@ -319,7 +319,7 @@ The EIP-712 types used for signing:
 
 ```typescript
 {
-  AlgorandTransaction: [{ name: "Transaction ID", type: "bytes32" }]
+  "Algorand Transaction": [{ name: "Transaction ID", type: "bytes32" }]
 }
 ```
 

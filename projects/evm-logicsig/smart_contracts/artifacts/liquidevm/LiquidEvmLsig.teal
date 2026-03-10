@@ -42,13 +42,13 @@ main_ternary_merge@3:
     -
     // smart_contracts/liquidevm/logicsig.algo.ts:61
     // const messageHash = op.keccak256(messageTypeHash.concat(txnIdPayload))
-    pushbytes 0xa0d3cab9c111e1025e8e6c24067ada7c8fff46e1696e611a8b2e5049bac4baf6
+    pushbytes 0x612f2598ebd964c16ba67a8b06d6f08ce24ab0911f0ff5a267a22fe01e687334
     uncover 4
     concat
     keccak256
     // smart_contracts/liquidevm/logicsig.algo.ts:66
     // const digest = op.keccak256(Bytes.fromHex('1901').concat(domainSeparator).concat(messageHash))
-    pushbytes 0x1901f727690fd7566b6b73ff21f90f90b9fd3012f09af6e043f71d9312236fa51f65
+    pushbytes 0x1901cef8b9829414ba4a13ea8f8c442b747ffe119c643d2213d22b4e137036a2d573
     swap
     concat
     keccak256

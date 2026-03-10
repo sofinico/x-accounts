@@ -59,7 +59,7 @@ The contract uses one template variable and two precomputed constants:
 
 - **OWNER** (template variable): 20-byte Ethereum address that controls this LogicSig instance
 - **DOMAIN_SEPARATOR** (constant): 32-byte precomputed EIP-712 domain separator (`keccak256(domainTypeHash + nameHash + versionHash)`)
-- **MESSAGE_TYPE_HASH** (constant): 32-byte precomputed EIP-712 message type hash (`keccak256("AlgorandTransaction(bytes32 Transaction ID)")`)
+- **MESSAGE_TYPE_HASH** (constant): 32-byte precomputed EIP-712 message type hash (`keccak256("Algorand Transaction(bytes32 Transaction ID)")`)
 
 When compiling, the SDK substitutes the owner address into the TEAL bytecode, creating a unique LogicSig program for each EVM address.
 

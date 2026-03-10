@@ -13,11 +13,11 @@
  * 5. Transaction is approved if the derived address matches the template owner
  *
  * EIP-712 Domain:
- * - name: "Algo x EVM"
+ * - name: "Algorand x EVM"
  * - version: "1"
  *
  * EIP-712 Message Type:
- * - AlgorandTransaction(bytes32 Transaction ID)
+ * - Algorand Transaction(bytes32 Transaction ID)
  */
 import { assert, Bytes, Global, LogicSig, op, TemplateVar, Txn, uint64 } from '@algorandfoundation/algorand-typescript'
 import { StaticBytes } from '@algorandfoundation/algorand-typescript/arc4'
@@ -48,15 +48,15 @@ export class LiquidEvmLsig extends LogicSig {
     // domainSeparator = keccak256(domainTypeHash + nameHash + versionHash)
     // where:
     //   domainTypeHash = keccak256("EIP712Domain(string name,string version)")
-    //   nameHash = keccak256("Algo x EVM")
+    //   nameHash = keccak256("Algorand x EVM")
     //   versionHash = keccak256("1")
-    // Value: 0xf727690fd7566b6b73ff21f90f90b9fd3012f09af6e043f71d9312236fa51f65
+    // Value: 0xcef8b9829414ba4a13ea8f8c442b747ffe119c643d2213d22b4e137036a2d573
 
     // EIP-712 Message Type Hash (precomputed off-chain)
-    // messageTypeHash = keccak256("AlgorandTransaction(bytes32 Transaction ID)")
-    // Value: 0xa0d3cab9c111e1025e8e6c24067ada7c8fff46e1696e611a8b2e5049bac4baf6
-    const domainSeparator = Bytes.fromHex('f727690fd7566b6b73ff21f90f90b9fd3012f09af6e043f71d9312236fa51f65')
-    const messageTypeHash = Bytes.fromHex('a0d3cab9c111e1025e8e6c24067ada7c8fff46e1696e611a8b2e5049bac4baf6')
+    // messageTypeHash = keccak256("Algorand Transaction(bytes32 Transaction ID)")
+    // Value: 0x612f2598ebd964c16ba67a8b06d6f08ce24ab0911f0ff5a267a22fe01e687334
+    const domainSeparator = Bytes.fromHex('cef8b9829414ba4a13ea8f8c442b747ffe119c643d2213d22b4e137036a2d573')
+    const messageTypeHash = Bytes.fromHex('612f2598ebd964c16ba67a8b06d6f08ce24ab0911f0ff5a267a22fe01e687334')
 
     const messageHash = op.keccak256(messageTypeHash.concat(txnIdPayload))
 

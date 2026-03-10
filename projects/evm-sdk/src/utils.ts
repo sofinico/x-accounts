@@ -126,7 +126,7 @@ export const algorandChain = {
 } as const
 
 export const EIP712_DOMAIN = {
-  name: "Algo x EVM",
+  name: "Algorand x EVM",
   version: "1",
 } as const
 
@@ -134,8 +134,8 @@ export const EIP712_DOMAIN = {
  * EIP-712 Types for Algorand transaction signing
  */
 export const EIP712_TYPES = {
-  AlgorandTransaction: [{ name: "Transaction ID", type: "bytes32" }],
-} as const
+  "Algorand Transaction": [{ name: "Transaction ID", type: "bytes32" }],
+}
 
 /**
  * EIP-712 domain type descriptors (included in types object for signing)
@@ -160,13 +160,13 @@ export function formatEIP712Message(payload: Uint8Array): { "Transaction ID": `0
  * Parameters passed to signMessage callbacks containing all EIP-712 typed data
  * needed to sign with any EVM wallet.
  *
- * Types use `as const` literals so they satisfy viem/abitype's strict
- * TypedData generics without requiring `any` casts at the call site.
+ * EIP712_DOMAIN uses `as const` for narrow string literals;
+ * EIP712_TYPES is left mutable so it satisfies ethers.js's `Record<string, TypedDataField[]>`.
  */
 export interface SignTypedDataParams {
   domain: typeof EIP712_DOMAIN
   types: typeof EIP712_TYPES & { EIP712Domain: typeof EIP712_DOMAIN_TYPE }
-  primaryType: "AlgorandTransaction"
+  primaryType: "Algorand Transaction"
   message: { "Transaction ID": `0x${string}` }
 }
 
@@ -184,7 +184,7 @@ export function buildTypedData(payload: Uint8Array): SignTypedDataParams {
       EIP712Domain: EIP712_DOMAIN_TYPE,
       ...EIP712_TYPES,
     },
-    primaryType: "AlgorandTransaction",
+    primaryType: "Algorand Transaction",
     message: formatEIP712Message(payload),
   }
 }
