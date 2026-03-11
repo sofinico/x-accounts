@@ -26,6 +26,7 @@ const wagmiConfig = getDefaultConfig({
     appName: "Algo x EVM Demo",
     projectId: "3404862cca4501e4d84be405269d955c",
     chains: [algorandChain],
+    debug: true,
   })
 
 

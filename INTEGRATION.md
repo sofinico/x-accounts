@@ -11,6 +11,10 @@ In case you want to experiment with Algo x EVM accounts in your frontend:
 >
 > Private testing is fine, so long as you are aware that future versions may derive different Algorand addresses, and you would need to recover your own funds with the corresponding version of this repo.
 
+## 0. Remove deprecated packages
+
+If you previously installed `@d13co/liquid-ui` or `liquid-accounts-evm`, remove them before proceeding.
+
 ## 1. Install packages
 
 Use npm aliases to install the experimental `@d13co` builds under the `@txnlab` package names. This way your imports stay as `@txnlab/use-wallet-react` — no find-and-replace needed.
@@ -123,6 +127,7 @@ const wagmiConfig = getDefaultConfig({
   appName: 'My Algo x EVM App',
   projectId: 'YOUR_WALLETCONNECT_PROJECT_ID', // from cloud.walletconnect.com
   chains: [algorandChain],
+  // debug: true, // logs wagmi state changes, connector events, and EIP-1193 RPC traffic
 })
 
 const walletManager = new WalletManager({
