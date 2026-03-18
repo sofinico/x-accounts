@@ -40,7 +40,7 @@ export function Header() {
             </Link>
           ))}
           <a
-            href="https://github.com/tasosbit/liquid-accounts"
+            href="https://github.com/algorandfoundation/x-accounts"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -74,7 +74,7 @@ export function Header() {
             </Link>
           ))}
           <a
-            href="https://github.com/tasosbit/liquid-accounts"
+            href="https://github.com/algorandfoundation/x-accounts"
             target="_blank"
             rel="noopener noreferrer"
             className="block py-2 text-sm font-medium text-muted-foreground"

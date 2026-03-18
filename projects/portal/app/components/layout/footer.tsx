@@ -10,7 +10,7 @@ export function Footer() {
             Docs
           </Link>
           <a
-            href="https://github.com/tasosbit/liquid-accounts"
+            href="https://github.com/algorandfoundation/x-accounts"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground transition-colors"

@@ -4,12 +4,12 @@
   "description": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tasosbit/liquid-accounts.git"
+    "url": "git+https://github.com/algorandfoundation/x-accounts.git"
   },
   "bugs": {
-    "url": "https://github.com/tasosbit/liquid-accounts/issues"
+    "url": "https://github.com/algorandfouncation/x-accounts/issues"
   },
-  "homepage": "https://github.com/tasosbit/liquid-accounts/tree/main/projects/evm-sdk#readme",
+  "homepage": "https://github.com/algorandfouncation/x-accounts/tree/main/projects/evm-sdk#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
