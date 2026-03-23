@@ -1,0 +1,53 @@
+import { Buffer } from 'buffer'
+import { type ReactNode, useMemo } from 'react'
+
+// Polyfills for wallet/bridge SDK dependencies (client-only via lazy load)
+if (typeof window !== 'undefined') {
+  ;(globalThis as any).Buffer = Buffer
+  if (!(globalThis as any).TronWebProto) {
+    ;(globalThis as any).TronWebProto = { Transaction: {} }
+  }
+}
+import { WalletProvider, WalletManager, WalletId, LogLevel } from '@txnlab/use-wallet-react'
+import { WalletUIProvider } from '@txnlab/use-wallet-ui-react'
+import { getDefaultConfig } from '@txnlab/use-wallet-ui-react/rainbowkit'
+import { algorandChain } from 'algo-x-evm-sdk'
+
+import '@rainbow-me/rainbowkit/styles.css'
+import '@txnlab/use-wallet-ui-react/dist/style.css'
+
+const wagmiConfig = getDefaultConfig({
+  appName: 'Algo x EVM Portal',
+  projectId: '3404862cca4501e4d84be405269d955c',
+  chains: [algorandChain],
+})
+
+function makeWalletManager() {
+  return new WalletManager({
+    options: {
+      debug: false,
+      logLevel: LogLevel.WARN,
+      resetNetwork: true,
+    },
+    wallets: [
+      {
+        id: WalletId.RAINBOWKIT,
+        options: { wagmiConfig },
+      },
+      WalletId.LUTE,
+    ],
+    defaultNetwork: 'mainnet',
+  })
+}
+
+export function WalletProviders({ children }: { children: ReactNode }) {
+  const walletManager = useMemo(() => makeWalletManager(), [])
+
+  return (
+    <WalletProvider manager={walletManager}>
+      <WalletUIProvider theme="system" wagmiConfig={wagmiConfig}>
+        {children}
+      </WalletUIProvider>
+    </WalletProvider>
+  )
+}

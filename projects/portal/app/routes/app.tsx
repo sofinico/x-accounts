@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { lazy, Suspense } from 'react'
 import { Header } from '~/components/layout/header'
 import { Footer } from '~/components/layout/footer'
-import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { MockWalletDashboard } from '~/components/app/mock-wallet'
+
+// Lazy-load wallet components to keep them client-only (SSR-safe)
+const WalletApp = lazy(() => import('~/components/app/wallet-app'))
 
 export const Route = createFileRoute('/app')({
   component: AppPage,
@@ -24,22 +26,16 @@ function AppPage() {
               Manage your Algorand x EVM account
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline">TestNet</Badge>
-            <Button disabled>
-              Connect Wallet
-            </Button>
+          <Badge variant="outline">MainNet</Badge>
+        </div>
+
+        <Suspense fallback={
+          <div className="flex justify-center py-12">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted border-t-primary" />
           </div>
-        </div>
-
-        <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4 text-sm text-muted-foreground mb-8">
-          <strong className="text-foreground">Mock UI - not ready for review</strong> &mdash; This is a
-          preview of the wallet management interface. Wallet connection and
-          transactions are not functional yet. The production app will integrate
-          use-wallet, use-wallet-ui, and algo-x-evm-ui components.
-        </div>
-
-        <MockWalletDashboard />
+        }>
+          <WalletApp />
+        </Suspense>
       </main>
       <Footer />
     </div>

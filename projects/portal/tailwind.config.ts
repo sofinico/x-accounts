@@ -4,7 +4,14 @@ import typography from '@tailwindcss/typography'
 
 export default {
   darkMode: ['class'],
-  content: ['./app/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    // Scan algo-x-evm-ui components so Tailwind generates their utility classes
+    // TODO offer a tailwind preset export from algo-x-evm-ui
+    '../use-wallet-ui/packages/algo-x-evm-ui/src/**/*.{ts,tsx}',
+    // Scan use-wallet-ui-react components (WalletButton, ConnectWalletMenu, etc.)
+    '../use-wallet-ui/packages/react/src/**/*.{ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
