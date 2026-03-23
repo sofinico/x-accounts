@@ -73,16 +73,16 @@ function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 pt-10 pb-20">
         <h2 className="text-center text-3xl font-bold">Why Algorand x EVM?</h2>
         <p className="mx-auto mt-3 text-center text-muted-foreground">
-          Bring the Ethereum wallet you already trust to Algorand&apos;s fast, low-cost network.
+          Keep your favorite Ethereum wallet and get Algorand's speed and low fees.
         </p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center gap-3 space-y-0 p-6">
               <Wallet className="h-8 w-8 text-primary shrink-0" />
-              <CardTitle>Bring Your Own</CardTitle>
+              <CardTitle>Bring Your Own Wallet</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground">
-              Connect your existing Ethereum wallet. No new seed phrases, no new apps. Your EVM address automatically maps to an Algorand
+              Connect your existing Ethereum wallet. <span className="font-bold">No new seed phrases, no new apps.</span> Your EVM address automatically maps to an Algorand
               account.
             </CardContent>
           </Card>
@@ -92,7 +92,7 @@ function LandingPage() {
               <CardTitle>Self Custodial</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground">
-              Only your signature can authorize transactions. Cryptographic ECDSA verification happens entirely on-chain via an Algorand
+              Only your signature can authorize transactions - <span className="font-bold">your keys never leave your device.</span> Cryptographic ECDSA verification happens entirely on-chain via an Algorand
               Smart Account.
             </CardContent>
           </Card>
@@ -102,7 +102,7 @@ function LandingPage() {
               <CardTitle>Domain Isolation</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground">
-              AVM and EVM domains are fully separated. Sign Algorand x EVM transactions with EIP-712 typed data, eliminating the risk of
+              Algorand and EVM domains are fully separated. Sign Algorand x EVM transactions with EIP-712 typed data, eliminating the risk of
               cross-network contamination.
             </CardContent>
           </Card>
