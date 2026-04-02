@@ -1,3 +1,5 @@
+- giulio props
+
 - [ ] errorboundary inside use-wallet-ui 
 
 - [ ] network in eip 712 message type. Mainnet exception
@@ -33,14 +35,15 @@
 
 - vue use-wallet?
 
-- [ ] bug: in portal: bridge does not auto-load chain balances, ethereum stays selected with empty (+short) asset dropdown
-- [ ] bug: in-dapp asset send icon not showing (shows "U" for USDC)
-- [ ] bug: ignore failures on some chains when looking up balances and proceed with any data available
-- [ ] bug: reloading portal (run dev) does not preserve session. frontend works
+- [v] bug: in portal: bridge does not auto-load chain balances, ethereum stays selected with empty (+short) asset dropdown
+- [x] bug: bridging state: ignore failures on individual chains when looking up balances and proceed with any data available
+- [v] bug: in-dapp asset send icon not showing (shows "U" for USDC)
+- [v] fix: icon in overview
+- [ ] bug: reloading portal (run dev) does not preserve wallet session. frontend works
 - [ ] bug: account switcher not showing
-- [ ] fix: icon in overview
 - [ ] fix: tooltip on Pera Verified badge
-  - feat? asset page
-- chore disable user-select in all buttons
-- add to metamask in portal
+- [ ] chore disable user-select in all buttons
+- [ ] add to metamask in portal
+
   > More page?
+  - feat? asset page
